@@ -1,0 +1,4 @@
+> library(parallel)
+> c2 <- makePSOCKcluster(rep ("localhost",2))
+> c2
+socket cluster with 2 nodes on host ‘localhost’
