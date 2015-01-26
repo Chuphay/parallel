@@ -4,6 +4,11 @@
 #include <mpi.h>
 #include <unistd.h>
 
+
+//mpicc -o mpi_hello mpi_hello.c
+
+//mpirun -np 35 -hostfile hosts ./mpi_hello
+
 const int MAX_STRING = 100;
 
 int main(void){

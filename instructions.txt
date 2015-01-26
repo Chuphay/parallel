@@ -1,0 +1,1 @@
+mpirun -np 35 -hostfile hosts ./mpi_hello
