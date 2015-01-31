@@ -13,7 +13,7 @@ typedef struct node{
   struct node *smaller;
 
 } node;
-
+/*
 void destroy(node *leaf){
 
   if(leaf != NULL){
@@ -22,6 +22,7 @@ void destroy(node *leaf){
     free(leaf);
   }
 }
+*/
 
 void insert(double coordinates[MAX], int coordinate, int value, struct node **leaf){
   if(coordinate>MAX-2){
@@ -29,19 +30,17 @@ void insert(double coordinates[MAX], int coordinate, int value, struct node **le
   }
 
   if(*leaf == NULL){
-    *leaf = malloc(sizeof(struct node));
-    (*leaf)->coordinates = coordinates;
+    //leaf = malloc(sizeof(struct node));
+    //(*leaf)->coordinates = coordinates; I need this line :(
     (*leaf)->value = value;
     (*leaf)->bigger = NULL;
     (*leaf)->smaller = NULL;
   } else if( (*leaf)->coordinates[coordinate] > coordinates[coordinate]){
-    insert(coordinates,coordinate,value, &(*leaf)->smaller
-
- 
-
+    insert(coordinates,coordinate,value, &(*leaf)->smaller);
+  }
 
 }
-
+/*
 void insert(double key[MAX], int value,  struct node **leaf){
 
   //http://www.cprogramming.com/tutorial/c/lesson18.html
@@ -50,9 +49,9 @@ void insert(double key[MAX], int value,  struct node **leaf){
 
     *leaf = (struct node*) malloc( sizeof( struct node ) );
     (*leaf)->key_value = key;
-    /* initialize the children to null */
-    (*leaf)->left = 0;    
-    (*leaf)->right = 0;  
+    // initialize the children to null
+    (*leaf)->left = NULL;    
+    (*leaf)->right = NULL;  
   } else if(key < (*leaf)->key_value){
 
         insert( key, &(*leaf)->left );
@@ -62,16 +61,17 @@ void insert(double key[MAX], int value,  struct node **leaf){
         insert( key, &(*leaf)->right );
     }
 }
+*/
 
-
+     
 
 
 
 int main(){
 
   node t;
-  t.key[0] = 3;
+  t.coordinates[0] = 3;
 
-  printf("key: %f\n",t.key[0]);
+  printf("key: %f\n",t.coordinates[0]);
   return 0;
 }
