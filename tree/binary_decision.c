@@ -5,40 +5,33 @@
 //gcc -Wall -o binary_decision binary_decision.c -lm
 
 
-#define FEATURES 4
-#define MAX 8
+typedef struct data_set {
+  int features;
+  int length;
+  int **data;
+} data_set;
 
-void print(int (*data)[MAX]){
-
+void print(data_set *d){
   int i,j;
-  for(i = 0; i< MAX; i++){
-    for(j=0;j<FEATURES; j++){
-      printf("%d ",data[j][i]);
+  for(i = 0; i< d->length; i++){
+    for(j=0;j<d->features; j++){
+      printf("%d ",d->data[j][i]);
     }
     printf("\n");
   }
 }
 
-typedef struct data_set {
 
-  int features;
-  int length;
-  double **data;
-
-} data_set;
 
 data_set *init_data_set(int features, int length) {
   data_set *out = malloc(sizeof(data_set));
-  double **data = malloc(features*length*sizeof(double*));
+  int **data = malloc(features*length*sizeof(int*));
   int i;
   for(i=0;i<features;i++){
-    data[i] = malloc(length*sizeof(double));
+    data[i] = malloc(length*sizeof(int));
   }
   out->features = features;
   out->length =length;
-  printf("here\n");
-  data[0][0] = 3;
-  printf("here\n");
   out->data = data;
   return out;
 }
@@ -65,16 +58,10 @@ double entropy(double q){
     return -(q * log(q)/log(2) + (1-q)*log(1-q)/log(2));
 }
 
-double get_prob(int *target, int length){
-  int i;
-  double out = 0.0;
-  for(i = 0; i <length; i++){
-    out += target[i];
-  }
-  return out/length;
-}
 
 double get_prob_a(int *input, int *target, int length){
+  //I'm not sure why I call it this
+  //this calculates the entropy gain of a column
 
   int i;
   int pos_pos = 0;
@@ -111,17 +98,25 @@ double get_prob_a(int *input, int *target, int length){
   printf("first %f and second %f\n", first, second);
   return first + second;
 
-
-
 }
-
-void make_splits(int (*data)[MAX], int *target, int data_length, int feat_length){
-
+int sum(int *array, int length){
+  int sum = 0;
   int i;
-  double smallest =  get_prob_a(data[0], target, data_length);
+  for(i = 0; i< length; i++)
+    sum += array[i];
+  return sum;
+} 
+
+void make_splits(data_set *d, int *target){
+  print(d);
+  int i;
+  for(i=0; i<d->length;i++) printf("%d",target[i]);
+  printf("\n");
+
+  double smallest =  get_prob_a(d->data[0], target, d->length);
   int split= 0;
-  for(i=1; i< feat_length; i++){
-   double temp = get_prob_a(data[i], target, data_length);
+  for(i=1; i< d->features; i++){
+   double temp = get_prob_a(d->data[i], target, d->length);
    if(temp<smallest){
      smallest = temp;
      split = i;
@@ -134,46 +129,78 @@ void make_splits(int (*data)[MAX], int *target, int data_length, int feat_length
   //well... maybe we don't actually need new data sets
 
   //yeah... we really will need to make a new data set
+
+  //first we will need a key of all the positive
+  //and negatives of our split data
+  //int *key_split = (int*)d->data[split];
+  int positives = sum(d->data[split],d->length);
+  printf("positives: %d\n",positives);
+
+  data_set *pos = init_data_set(d->features, positives);
+  data_set *neg = init_data_set(d->features, d->length - positives);
+  int pos_target[positives];
+  int neg_target[d->length - positives];
+  int j, pos_count = 0, neg_count = 0;
+  for(i = 0; i< d->length; i++){
+    if(d->data[split][i] == 1){
+      for(j = 0; j< d->features; j++){
+	pos->data[j][pos_count] = d->data[j][i];
+      }
+      pos_target[pos_count] = target[i];
+      pos_count++;
+    } else if(d->data[split][i] == 0){ //error checking
+      for(j = 0; j< d->features; j++){
+	neg->data[j][neg_count] = d->data[j][i];
+      }
+      neg_target[neg_count] = target[i];
+      neg_count++;
+    } else {
+      printf("should not be here\n");
+    }
+  }
+  destroy_data_set(d);
+  //printf("pos count %d neg count %d\n",neg_count, pos_count);
+  //for(i=0; i<neg_count;i++) printf("%d",neg_target[i]);
+  //for(i=0; i<pos_count;i++) printf("%d",pos_target[i]);
+  // print(neg);
+  //print(pos);
+
+  // make_splits(neg, neg_target
+
+  destroy_data_set(neg);
+  destroy_data_set(pos);
+
 }
 
 
 
 int main(){
 
-  data_set *d = init_data_set(4,8);
+  data_set *d = init_data_set(3,8);
 
-  int data[4][8] = {};
   int j;
 
     for(j=0;j<8; j++){
-      //(d->data)[0][j] = 0;//d->data[1][j] = d->data[2][j] = d->data[3][j] = 0;
+      d->data[0][j] = d->data[1][j] = d->data[2][j] = 0;
 
       if(j/4 == 0)
-	data[0][j] = 1;
+	d->data[0][j] = 1;
       if((j/2)%2 == 0)
-	data[1][j] = 1;
+	d->data[1][j] = 1;
       if(j%2 == 0)
-	data[2][j] = 1;
+	d->data[2][j] = 1;
     }
-    data[3][0] = data[3][4] = data[3][7] = data[3][2] = data[3][6] =1;
-    //data[3][2] should be data[3][7], but changed it a little
-    //to make the algorithm a little cooler  
+    int target[8] = {1,0,1,1,1,0,1,0};
 
-    print(data);
-
-
-    printf("prob %f\n", get_prob(&data[3][4], 4));
-
-    //get_prob_a(data[0],data[3],8);
-    //get_prob_a(data[1],data[3],8);
-    //get_prob_a(data[2], data[3],8);
+    //print(d);
+    //printf("prob %f\n", get_prob(&data[3][4], 4));
 
 
   printf("entropy of 0.5 %f\n", entropy(0.5));
-  make_splits(data, data[3], 8, 3);
+  make_splits(d, target);
 
 
-  destroy_data_set(d);
+  //destroy_data_set(d);
 
 
   return 0;
