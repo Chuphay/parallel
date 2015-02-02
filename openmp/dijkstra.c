@@ -3,6 +3,8 @@
 #include <time.h>
 #include <omp.h>
 
+//./dijkstra 16 1
+
 int nv, *notdone, nth, chunk, md, mv, largeint = -1;
 
 unsigned *ohd; //1-hop distance between vertices
