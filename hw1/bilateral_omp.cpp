@@ -49,6 +49,7 @@ BilateralFilter::BilateralFilter(unsigned char *_image,
 
   int center = (kernelSize - 1) / 2;
 
+#pragma omp for collapse(2)
   for (int x = -center; x < -center + kernelSize; x++) {
     for (int y = -center; y < -center + kernelSize; y++) {
       kernelD[x + center][y + center] = this->gauss(sigmaD, x, y);
@@ -57,6 +58,8 @@ BilateralFilter::BilateralFilter(unsigned char *_image,
 
 		
   gaussSimilarity = new double[256];
+  //Ran a little slower with parallelism, so I took it out
+  //#pragma omp for
   for (int i = 0; i < 256; i++) {
     gaussSimilarity[i] = exp((double)-((i) / twoSigmaRSquared));
   }
@@ -76,7 +79,9 @@ BilateralFilter::~BilateralFilter()
 
 unsigned char * BilateralFilter::runFilter(){
 
-#pragma omp parallel for            
+
+  //I tried collapse(2) but it was actually slower
+#pragma omp parallel for           
   for(int i=0;i<rows;i++){
     //printf("num threads: %d\n", omp_get_num_threads());
     for (int j=0;j<cols;j++){
@@ -107,15 +112,25 @@ void BilateralFilter::apply(int i, int j) {// ~i=y j=x
     int nMax = j + kernelRadius;
     double weight;
 
-#pragma omp parallel for
+    //I tried collapse(2) but that was actually slower
+#pragma omp parallel for private(weight) reduction(+: sum) reduction(+: totalWeight)
     for (int m = i-kernelRadius; m < mMax; m++) {
       for (int n = j-kernelRadius; n < nMax; n++) {
 
 	if (this->isInsideBoundaries(m, n)) {
 	  int intensityKernelPos = getValue(m,n);
+	  // double weight;
 	  weight = getSpatialWeight(m,n,i,j) * similarity(intensityKernelPos,intensityCenter);
+
+	  //critcal section here
+	  //I tried omp critical, but it was very slow
+	  //so I ended up using atomic twice
+	  //#pragma omp atomic
+	  //no... I actually ended up using reduction
+	  //which almost doubled my speed!
 	  totalWeight += weight;
 	  sum += (weight * intensityKernelPos);
+      
 	}
       }
     }
