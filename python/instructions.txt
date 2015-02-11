@@ -1,0 +1,9 @@
+from http://kermit.epska.org/2010/ubuntu-cluster-setup-for-parallel-programming-using-mpi-in-python/
+
+run:
+
+mpiexec -n 6 python helloWorld.py
+
+and the original code, which means we can cluster looked like:
+
+mpiexec -n 6 -f machinefile python program.py
