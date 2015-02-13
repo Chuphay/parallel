@@ -62,7 +62,7 @@ cpytoglb(dprimes,sprimes,n,nth,me);
 }
 
 int main(){
-printf("start\n");
+
 int n = 10, nth = 16;
 
 int *hprimes, *dprimes;
@@ -72,6 +72,8 @@ hprimes = (int *) malloc(psize);
 printf("before cuda Malloc\n");
 
 cudaMalloc((void **) &dprimes, psize);
+cudaError_t err = cudaGetLastError();
+if(err != cudaSuccess) printf("fail\n");
 printf("after cudamalloc\n");
 
 dim3 dimGrid(1,1);
@@ -79,9 +81,9 @@ dim3 dimBlock(nth, 1, 1);
 
 sieve<<<dimGrid, dimBlock, psize>>>(dprimes, n ,nth);
 
-cudaError_t err = cudaGetLastError();
+err = cudaGetLastError();
 if(err != cudaSuccess) printf("fail\n");
-printf("apparently enough memory\n");
+
 
 cudaThreadSynchronize();
 
