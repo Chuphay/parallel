@@ -1,5 +1,3 @@
-//#include <iostream>
-//#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cuda.h>
@@ -7,79 +5,47 @@
 #define NUM_MASSES 1024
 
 __device__ void make_move(float *y, float *yold, float *v, float *out, int t){
+
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   float Ktension = 0.2;
   float Kdamping = 0.9999;
 
-  //for ( int t = 0; t < numIters; t++ ) {
-    // if(t%2 == 1){
-    //i = i - NUM_MASSES/2;
-      //}
-      if ( i > 0 && i < NUM_MASSES-1 ) {
-	float accel = Ktension * (yold[i+1] + yold[i-1] - 2*yold[i]);
-	//      add accel to velocity
-	v[i] += accel;
-	v[i] *= Kdamping;
-	//      add velocity to position
-	y[i] = yold[i] + v[i];
-	//sum += y[i];
-      }
-    
+  if ( i > 0 && i < NUM_MASSES-1 ) {
+    float accel = Ktension * (yold[i+1] + yold[i-1] - 2*yold[i]);
+    //      add accel to velocity
+    v[i] += accel;
+    v[i] *= Kdamping;
+    //      add velocity to position
+    y[i] = yold[i] + v[i];
+  }
 
-    __syncthreads();
-    float *tmp = y;
-    y = yold;
-    yold = tmp;
-    out[t]  = y[NUM_MASSES/2];
-    //}
+  __syncthreads();
+  float *tmp = y;
+  y = yold;
+  yold = tmp;
+  out[t]  = y[NUM_MASSES/2];
 }
 
 
 __global__ void do_it(float *y, float *yold,float  *v,float *out, int numIters){
 
-  //int i = blockIdx.x*NUM_MASSES + threadIdx.x;
-  //float Ktension = 0.2;
-  // float Kdamping = 0.9999;
-
-  for ( int t = 0; t < numIters; t++ ) {
-    if(t%2 == 0){
-    make_move(y,yold, v, out, t);
-    } else {
+  for(int t = 0; t < numIters; t++){
+    if(t%2 == 0)
+      make_move(y,yold, v, out, t);
+    else 
       make_move(yold,y, v, out, t);
-    }
-    //i = i - NUM_MASSES/2+10;
-      //}
-      //if ( i > 0 && i < NUM_MASSES-1 ) {
-    //float accel = Ktension * (yold[i+1] + yold[i-1] - 2*yold[i]);
-	////      add accel to velocity
-    //	v[i] += accel;
-    //	v[i] *= Kdamping;
-	//      add velocity to position
-    //	y[i] = yold[i] + v[i];
-	//sum += y[i];
-    //    }
-    
-
-  //__syncthreads();
-  //float *tmp = y;
-  //y = yold;
-  //yold = tmp;
-  //out[t]  = y[NUM_MASSES/2];
   }
 }
 
-int main ( int argc, char **argv )
-{
+int main (){
 
   float *y, *device_y, *yold, *device_yold;
-  float *v, *device_v; // *vold, device_vold;
+  float *v, *device_v; 
   float *cuda_out;
-  //const int NUM_MASSES = 1000;
-    const float Ktension = 0.2;
-    const float Kdamping = 0.9999;
-    const float duration = 1.0;
-
-    //const int PICKUP_POS = NUM_MASSES / 7;    // can place pickup anywhere
+  
+  const float Ktension = 0.2;
+  const float Kdamping = 0.9999;
+  const float duration = 1.0;
 
   int size = NUM_MASSES*sizeof(float);
   y = (float *)malloc(size);
@@ -106,7 +72,8 @@ int main ( int argc, char **argv )
   int numIters = duration *20; // 44100; // 5 seconds
   cudaMalloc((void **) &cuda_out, numIters*sizeof(float));
 
-  do_it<<<2, NUM_MASSES>>>(device_y, device_yold, device_v, cuda_out, numIters);
+  int num_blocks = 8;
+  do_it<<<num_blocks, NUM_MASSES>>>(device_y, device_yold, device_v, cuda_out, numIters);
 
   cudaThreadSynchronize();
 
