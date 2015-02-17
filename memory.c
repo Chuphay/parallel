@@ -14,5 +14,6 @@ int main(){
     amount = 10*amount;
   }
   printf("succes up to %ld\n", amount);
+  printf("sizeof(double) %d\n", sizeof(double));
   return 0;
 }
