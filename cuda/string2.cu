@@ -4,7 +4,9 @@
 
 #define NUM_MASSES 1024
 
-__device__ void make_move(float *y, float *yold, float *v){
+__global__ void make_move(float *y, float *yold, float *v, float *out, int time){
+
+  out[time] = yold[NUM_MASSES/2];
 
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   float Ktension = 0.2;
@@ -20,22 +22,7 @@ __device__ void make_move(float *y, float *yold, float *v){
   }
 }
 
-
-__global__ void do_it(float *y, float *yold,float  *v,float *out, int numIters){
-
-  for(int t = 0; t < numIters; t++){
-    
-    make_move(y,yold, v);
-    __syncthreads();
-    
-    float *tmp = y;
-    y = yold;
-    yold = tmp;
-    out[t] = y[NUM_MASSES/2];
-  }
-}
-
-int main (){
+int main(){
 
   float *y, *device_y, *yold, *device_yold;
   float *v, *device_v; 
@@ -71,12 +58,14 @@ int main (){
   cudaMalloc((void **) &cuda_out, numIters*sizeof(float));
 
   int num_blocks = 8;
- 
-  do_it<<<num_blocks, NUM_MASSES>>>(device_y, device_yold, device_v, cuda_out, numIters);
+  for(int i = 0; i< numIters/2; i++){
+    make_move<<<num_blocks, NUM_MASSES/num_blocks>>>(device_y, device_yold, device_v, cuda_out, 2*i);
+    make_move<<<num_blocks, NUM_MASSES/num_blocks>>>(device_yold, device_y, device_v, cuda_out, 2*i+1);
+  }
   cudaThreadSynchronize();
 
   float *host_out = (float *)malloc(numIters*sizeof(float));
-    cudaMemcpy(host_out, cuda_out, numIters*sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy(host_out, cuda_out, numIters*sizeof(float), cudaMemcpyDeviceToHost);
 
   for ( int t = 0; t < numIters; t++ ) {
     // for each mass element
