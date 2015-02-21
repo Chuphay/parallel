@@ -13,6 +13,8 @@ int main(){
     free(p);
     amount = 10*amount;
   }
+  double *p = malloc(2*65536*sizeof(double));
+  if(p == NULL) printf("fail\n");
   printf("succes up to %ld\n", amount);
   printf("sizeof(double) %d\n", sizeof(double));
   printf("sizeod(int) %d\n", sizeof(int));
