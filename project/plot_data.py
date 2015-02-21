@@ -9,6 +9,7 @@ clusters = list(map(int, open("classes.txt").read().split()))
 num_clusters = max(clusters)
 colors = cm.rainbow(np.linspace(0, 1, num_clusters))
 
+plt.figure(figsize = (15,3))
 for i in range(num_clusters):
     for j in range(len(clusters)):
         if(clusters[j] == i + 1): #plus 1 because my clusters start at 1
