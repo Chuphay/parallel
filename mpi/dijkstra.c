@@ -94,7 +94,7 @@ void disseminateoverallmin(){
     for(i = 1; i< comm_sz; i++)
       MPI_Send(overall_min, 2, MPI_INT, i, OVERALL_MSG, MPI_COMM_WORLD);
     else
-      MPI_Recv(overall_min,2,MPI_INT,0,OVERALL_MSG, MPI_COMM_WORLD, NULL);
+      MPI_Recv(overall_min,2,MPI_INT,0,OVERALL_MSG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   
 }
 void updateallmin_distance(){
@@ -103,7 +103,7 @@ void updateallmin_distance(){
     MPI_Send(min_distance+start_v, chunk, MPI_INT, 0, COLLECT_MSG, MPI_COMM_WORLD);
   else
     for(i = 0; i < comm_sz; i++)
-      MPI_Recv(min_distance + i*chunk, chunk, MPI_INT, i, COLLECT_MSG, MPI_COMM_WORLD, NULL);
+      MPI_Recv(min_distance + i*chunk, chunk, MPI_INT, i, COLLECT_MSG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 }
 
 void printmd(){
