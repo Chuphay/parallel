@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "stack.h"
 
+/*
 typedef struct s_node{
   int key;
   int count;
   struct s_node *next;
 } s_node;
+*/
 
 void destroy_stack(s_node *root){
   if(root != NULL){
@@ -18,6 +21,11 @@ void push_stack(int key, s_node **root){
   if(*root == NULL){
     //initialize the stack
     *root = (s_node *)malloc(sizeof(s_node));
+    if(root == NULL){
+      printf("couldn't initialize the stack. exiting\n");
+      exit(1);
+    }
+
     (*root)->key = key;
     (*root)->count = 1;
     (*root)->next = NULL;     
@@ -41,6 +49,10 @@ void push_stack(int key, s_node **root){
       //so that it is on top of the stack
 
       s_node *new_root = malloc(sizeof(s_node));
+      if(new_root == NULL){
+	printf("couldn't get enough memory. exiting\n");
+	exit(1);
+      }
       new_root->key = (*root)->key;
       new_root->count = (*root)->count;
       new_root->next = (*root)->next;
@@ -68,6 +80,23 @@ void pop_stack(int *key, int *count, s_node **root){
   free(leaf);
 }
 
+int search_stack(int key, int *count, s_node *root){
+  //this one is kind of confusing
+  //search for a key
+  //I'll place the count in the count variable
+  //returns 1 for success
+  //and 0 for fail
+  int flag = 0;
+  while(root != NULL){
+    if(root->key == key){
+      *count = root->count;
+      flag = 1;
+      break;
+    }
+    root = root->next;
+  }
+  return flag;
+}
 
 
 
@@ -80,7 +109,7 @@ void print_stack(s_node *root){
   }
 }
 
-
+/*
 int main(){
   s_node *root = NULL; //necessary to initialize root to 0
   print_stack(root);
@@ -98,7 +127,10 @@ int main(){
   pop_stack(&key, &count, &root);
   printf("popped %d, %d\n", key, count);
   print_stack(root);
-
+  int count2;
+  int success = search_stack(78, &count2, root);
+  printf("success in finding 78: %d, and count %d\n", success, count2);
   destroy_stack(root);
   return 0;
 }
+*/
