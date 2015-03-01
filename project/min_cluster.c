@@ -3,7 +3,7 @@
 #include "stack.h"
 
 int main(){
-  s_node *root = NULL; //necessary to initialize root to 0
+  stack *root = NULL; //necessary to initialize root to 0
   print_stack(root);
   push_stack(3, &root);
   push_stack(76, &root);
@@ -22,6 +22,11 @@ int main(){
   int count2;
   int success = search_stack(78, &count2, root);
   printf("success in finding 78: %d, and count %d\n", success, count2);
+  int keys[12];
+  int counts[12];
+  int tot_count = get_stack(keys, counts, 12, root);
+  for(int i=0; i<tot_count; i++)
+    printf("tot--key: %d count: %d\n", keys[i], counts[i]); 
 
 
 
