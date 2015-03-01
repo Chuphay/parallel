@@ -2,7 +2,7 @@
 #define _stack_h
 
 //compile:
-//gcc -Wall -c -o stack.o stack.c
+//gcc -Wall -O3 -c -o stack.o stack.c
 
 typedef struct stack{
   int key;
