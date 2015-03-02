@@ -22,6 +22,8 @@ int search_stack(int key, int *count, stack *root);
 
 int get_stack(int *key, int *count, int n, stack *root);
 
+int del_key_from_stack(int key, stack **root);
+
 void print_stack(stack *root);
 
 #endif

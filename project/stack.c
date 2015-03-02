@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "stack.h"
 
+//compile:
+//gcc -Wall -O3 -c -o stack.o stack.c
+
 /*
 typedef struct stack{
   int key;
@@ -69,13 +72,24 @@ void peek_stack(int *key, int *count, stack **root){
 }
 
 void pop_stack(int *key, int *count, stack **root){
+  if(*root == NULL){
+    printf("Nothing in the stack. exiting\n");
+    exit(1);
+  }
+
   *key = (*root)->key;
   *count = (*root)->count;
 
   stack *leaf = (*root)->next;
-  (*root)->key = leaf->key;
-  (*root)->count = leaf->count;
-  (*root)->next = leaf->next;
+  if(leaf != NULL){
+    (*root)->key = leaf->key;
+    (*root)->count = leaf->count;
+    (*root)->next = leaf->next;
+  } else {
+    //popping the only node
+    free(*root);
+    *root = NULL;
+  }
 
   free(leaf);
 }
@@ -85,8 +99,8 @@ int search_stack(int key, int *count, stack *root){
   //search for a key
   //I'll place the count in the count variable
   //returns 1 for success
-  //and 0 for fail
-  int flag = 0;
+  //and -1 for fail
+  int flag = -1;
   while(root != NULL){
     if(root->key == key){
       *count = root->count;
@@ -117,6 +131,32 @@ int get_stack(int *key, int *count, int n, stack *root){
     num++;
   }
   return num;
+}
+
+int del_key_from_stack(int key, stack **root){
+  //returns count for success
+  //and -1 for fail
+  int out = -1;
+  if((*root) == NULL){
+    return out;
+  } else if((*root)->key == key){
+    out = (*root)->count;
+    stack *leaf = (*root)->next;
+    if(leaf != NULL){
+      (*root)->key = leaf->key;
+      (*root)->count = leaf->count;
+      (*root)->next = leaf->next;
+    } else {
+      //no leafs, simply deleting the node
+      free(*root);
+      *root = NULL;
+    }
+    free(leaf);
+    return out;
+
+  } else {
+    return del_key_from_stack(key, &((*root)->next));
+  }
 }
 
 
@@ -154,6 +194,11 @@ int main(){
   int tot_count = get_stack(keys, counts, 12, root);
   for(int i=0; i<tot_count; i++)
     printf("tot--key: %d count: %d\n", keys[i], counts[i]);
+
+
+
+  int n_count = del_key_from_stack(76, &root);
+  printf("deleted and the count was %d\n", n_count);
 
   destroy_stack(root);
   return 0;
