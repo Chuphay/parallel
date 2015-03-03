@@ -1,4 +1,4 @@
-#include <stdio.h>
+1;3409;0c#include <stdio.h>
 #include <stdlib.h>
 #include <cuda.h>
 
@@ -91,19 +91,5 @@ int main(){
     y = yold;
     yold = tmp;
     printf("y[NUM_MASSES/2] %f  %f\n",y[NUM_MASSES/2], host_out[t]);
-
-    /*
-    #if 1
-    //   output a sample as sum of displacements
-    fwrite ( &sum, sizeof(float), 1, f );
-    #else
-    // output a sample at pickup
-    fwrite ( &y[PICKUP_POS], sizeof(float), 1, f );
-    #endif
-    */
   }
-  // close output file
-  //fclose ( f );
-
-
 }
