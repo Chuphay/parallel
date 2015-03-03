@@ -22,7 +22,7 @@ __global__ void make_move(float *y, float *yold, float *v, float *out, int time)
   }
 }
 
-void serial(float *y, float *yold, float *v, int numIters){
+void serial(float *y, float *yold, float *v, int numIters, float *out){
   float Ktension = 0.2;
   float Kdamping = 0.9999;
 
@@ -50,6 +50,7 @@ void serial(float *y, float *yold, float *v, int numIters){
     float *tmp = y;
     y = yold;
     yold = tmp;
+    out[i] = y[NUM_MASSES/2];
   }
 }
 
@@ -60,8 +61,8 @@ int main(){
   float *v, *device_v; 
   float *cuda_out;
   
-  const float Ktension = 0.2;
-  const float Kdamping = 0.9999;
+  //const float Ktension = 0.2;
+  //const float Kdamping = 0.9999;
   const float duration = 1.0;
 
   int size = NUM_MASSES*sizeof(float);
@@ -99,9 +100,10 @@ int main(){
   float *host_out = (float *)malloc(numIters*sizeof(float));
   cudaMemcpy(host_out, cuda_out, numIters*sizeof(float), cudaMemcpyDeviceToHost);
 
-  serial(y, yold, v,numIters);
+  float *out = malloc(numIters*sizeof(float)); 
+  serial(y, yold, v,numIters, out);
   for(int i = 0; i<numIters; i++)
-    printf("%f\n", y[NUM_MASSES/2]);
+    printf("%f\n", out[i]);
 
 
 
