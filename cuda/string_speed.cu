@@ -68,7 +68,7 @@ int main(int argc, char **argv){
   
   //const float Ktension = 0.2;
   //const float Kdamping = 0.9999;
-  int duration = 1;
+  int duration = atoi(argv[2]);
 
   int size = NUM_MASSES*sizeof(float);
   y = (float *)malloc(size);
