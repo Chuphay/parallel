@@ -99,8 +99,8 @@ int search_stack(int key, int *count, stack *root){
   //search for a key
   //I'll place the count in the count variable
   //returns 1 for success
-  //and -1 for fail
-  int flag = -1;
+  //and 0 for fail
+  int flag = 0;
   while(root != NULL){
     if(root->key == key){
       *count = root->count;

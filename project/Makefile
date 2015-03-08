@@ -1,4 +1,4 @@
-CFLAGS=-std=c99 -Wall 
+CFLAGS=-std=c99 -Wall -O3 
 
 make_data: -lm
 
