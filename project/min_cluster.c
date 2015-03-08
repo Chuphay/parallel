@@ -141,7 +141,13 @@ cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
 }
 
 void get_data(int *N, int *K, char *file){
+  FILE * fp = fopen(file, "r");
+  if(file == NULL){
+    printf("couldn't open the file\n");
+    exit(1);
+  }
 
+  fclose(fp);
 }
 
 int main(){
