@@ -24,38 +24,45 @@ int find_next_vertex(vertex **graph, cluster *cluster, int K){
   //otherwise returns -1
 
   double ratio = (cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
-
   double new_ratio;
+
   int out = -1;
   int keys[2*K];
   int counts[2*K];
   int tot_count = get_stack(keys, counts, 2*K, cluster->external_edges);
+  //tot_count is the number of edges in the cluster perimeter
+  //keys store the vertices in the perimeter 
+  //counts store the number of edges pointing to that vertex
+
   for(int i=0; i<tot_count; i++){
-    //printf("tot--key: %d count: %d\n", keys[i], counts[i]); 
-    //printf("graph[%d] num_edges %d\n",keys[i], graph[keys[i]]->num_edges);
+    //obviously we will go over all the vertices in the perimeter
+    vertex *v = graph[keys[i]];
+
+    //we will need to count how many edges the perimeter and the new vertex share in common
     int num_of_edges_in_perimeter = 0;
-    for(int j=0; j<  graph[keys[i]]->num_edges; j++){
-      //printf("new_edges: %d\n", graph[keys[i]]->edges[j]);
-      int not_using_this;
-      int in_perimeter = search_stack(graph[keys[i]]->edges[j], &not_using_this, cluster->external_edges);
-      //printf("in perimeter? %d\n", in_perimeter);
+
+    for(int j=0; j< v->num_edges; j++){  //here we go over all the edges of the vertex
+
+      int not_using_this; //not using this, but my stack API requires it for some reason
+      int in_perimeter = search_stack(v->edges[j], &not_using_this, cluster->external_edges);
       num_of_edges_in_perimeter += in_perimeter;
     }
-    //printf("num_of_edges_in_perimeter %d\n",num_of_edges_in_perimeter);
-    //printf("old_ratio %f\n",ratio);
-    double new_perimeter = graph[keys[i]]->num_edges -num_of_edges_in_perimeter-counts[i];
-    //printf("new perimeter %f\n",new_perimeter);
+
+    //now we have the egdes that are shared
+    //but we still need to account for the edges pointing to the cluster
+    //however, this is obviously the same as the number of edges pointing to the new vertex
+    //and we already have this in counts[i] 
+    double new_perimeter = v->num_edges - num_of_edges_in_perimeter - counts[i];
     double new_area = cluster->area + counts[i];
-    //printf("new_area %f\n", new_area);
     new_ratio = new_area/new_perimeter;
+
+    //do our stopping condition
     if(new_ratio >= ratio){
       ratio = new_ratio;
       out = keys[i];
     }
- 
-
   }
-  //printf("out %d\n",out);
+
   return out;
 }
 
@@ -65,8 +72,6 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
   graph[v]->cluster = c_identity;
   cluster->internal_vertices[cluster->num_internal_vertices] = v;
   cluster->num_internal_vertices++;
-
- 
 
   int new_node;
   for(int i=0; i< graph[v]->num_edges; i++){
@@ -80,11 +85,10 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
       //this means that this edge already points to the cluster
       //so, we should delete this edge
       //or just pass?
-      //printf("passing?\n");
 
     } else {
       //I believe this means it points to some other cluster
-      //ignore these
+      //ignore these for now
       printf("in this sort of weird place...\n");
       printf("adding node %d, but it apparently belongs somewhere else\n", new_node);
     }
@@ -112,9 +116,17 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
 cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
 
   cluster *c = malloc(sizeof(cluster));
+  if(c == NULL){
+    printf("couldn't allocate for the cluster\n");
+    exit(1);
+  }
   c->identity = identity;
   c->external_edges = NULL;
   c->internal_vertices = malloc(N*sizeof(int));
+  if(c->internal_vertices == NULL){
+    printf("couldn't allocate for the internal_vertices\n");
+    exit(1);
+  }
   c->num_internal_vertices = 0;
   c->area = 0;
   c->perimeter = 0;
@@ -140,6 +152,10 @@ int main(){
 
 
   vertex **graph = malloc(N*sizeof(vertex *));
+  if(graph == NULL){
+    printf("yikes, ran out of memory!\n");
+    exit(1);
+  }
   for(int i = 0; i< N; i++){
     graph[i] = malloc(sizeof(vertex));
     graph[i]->edges = malloc(2*K*sizeof(int)); //2*K for worst case scenario
@@ -183,7 +199,7 @@ int main(){
   graph[5]->num_edges = 2;
   graph[5]->cluster = 0;
 
-  //find_next_vertex(graph, cluster_one, K);
+
   cluster *cluster_one = make_cluster(graph, N, K, 1, 3);
 
   printf("identity: %d\n",cluster_one->identity);
@@ -204,49 +220,6 @@ int main(){
   destroy_stack(cluster_one->external_edges);
   free(cluster_one->internal_vertices);
   free(cluster_one);
-
-
-
-   
-  /*
-  stack *root = NULL; //necessary to initialize root to 0
-  print_stack(root);
-  //push_stack(3, &root);
-  
-  push_stack(76, &root);
-  //push_stack(4, &root);
-  //push_stack(3, &root);
-  //push_stack(17, &root);
-  //push_stack(76, &root);
-  //push_stack(76, &root);
-  int key, count;
-  
-  peek_stack(&key, &count, &root); 
-  printf("Peeking: %d, %d\n", key, count);
-  print_stack(root);
-  // pop_stack(&key, &count, &root);
-  // printf("popped %d, %d\n", key, count);
-  //pop_stack(&key, &count, &root);
-  //printf("popped %d, %d\n", key, count);
-  print_stack(root);
-  int count2;
-  int success = search_stack(78, &count2, root);
-  printf("success in finding 78: %d, and count %d\n", success, count2);
-  int keys[12];
-  int counts[12];
-  //int tot_count = get_stack(keys, counts, 12, root);
-
-  int n_count = del_key_from_stack(76, &root);
-  printf("deleted and the count was %d\n", n_count);
-
-  int tot_count = get_stack(keys, counts, 12, root);
-  for(int i=0; i<tot_count; i++)
-    printf("tot--key: %d count: %d\n", keys[i], counts[i]); 
-
-  
-
-  destroy_stack(root);
-  */
 
   return 0;
 }
