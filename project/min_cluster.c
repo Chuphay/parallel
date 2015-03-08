@@ -140,10 +140,9 @@ cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
   return c;
 }
 
+void get_data(int *N, int *K, char *file){
 
-
-
-
+}
 
 int main(){
   int N = 6;
