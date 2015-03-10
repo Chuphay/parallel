@@ -150,6 +150,62 @@ void get_data(int *N, int *K, char *file){
   fclose(fp);
 }
 
+int open(vertex **graph,  char *name){
+  /*graph needs to be preallocated memory
+name is the name of the file you need opened
+returns the number of lines in the file
+and hence in the data,
+but otherwise it messes with data in place
+ */
+
+  char s[100];
+  FILE *fp =fopen(name,"r");
+  if (fp == NULL) {
+    printf("Couldn't open %s for reading\n",name);
+    exit(1);
+  }
+
+  int c;
+  int j = 0;
+  int k = 0;
+  int l = 0;
+  int flag = 0;
+  while((c=fgetc(fp)) != EOF){
+    printf("%c",(char)c);
+    if((char)c != '\n'){
+      flag = 0; 
+      s[j]=c;
+      j++;
+    }
+    if((char)c == '\n'){
+      //data[k][l] = (int) strtol(s, (char **)NULL, 10);
+      k++;
+      l = 0;
+      j = 0; 
+    } else if (isspace(c)){
+      if(flag){
+	printf("2 spaces.. exiting  %d \n", k);
+	exit(1);      
+      }
+      flag = 1;
+      //data[k][l] = (int) strtol(s, (char **)NULL, 10);
+      l++;
+      j = 0; 
+    }
+    if(j>1000){
+      printf("something bad happened: line too long\n");
+      exit(1);
+    }
+    if(l>1000){
+      printf("too many columns... exiting %d \n" ,k);
+      exit(1);
+    }
+  }
+
+  fclose(fp);
+  return k;
+}
+
 int main(){
   int N = 6;
   int K = 3;
@@ -221,6 +277,7 @@ int main(){
     free(graph[i]->edges);
     free(graph[i]);
   }
+  open(graph, "test.data");
   free(graph);
   destroy_stack(cluster_one->external_edges);
   free(cluster_one->internal_vertices);
