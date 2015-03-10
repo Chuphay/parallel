@@ -74,7 +74,7 @@ def write_data(edge_graph, k, file_name):
     
   
 if __name__ == "__main__":
-    num = 10
+    num = 14
     np.random.seed(123)
     g = make_saturn(num)
     k,x = make_edge_graph(g,3)

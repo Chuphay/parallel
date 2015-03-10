@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "stack.h"
+
+int N,K;
 
 typedef struct vertex{
   int identity;
@@ -166,9 +169,9 @@ but otherwise it messes with data in place
   }
 
   int c;
-  int j = 0;
-  int k = 0;
-  int l = 0;
+  int j = 0; //place in the line
+  int k = 0; //num of line
+  int l = 0; //element in the line i.e "2 13 434" has only 3 elements
   int flag = 0;
   while((c=fgetc(fp)) != EOF){
     printf("%c",(char)c);
@@ -192,6 +195,7 @@ but otherwise it messes with data in place
       l++;
       j = 0; 
     }
+
     if(j>1000){
       printf("something bad happened: line too long\n");
       exit(1);
@@ -201,14 +205,14 @@ but otherwise it messes with data in place
       exit(1);
     }
   }
-
+  printf("k: %d\n", k-1);
   fclose(fp);
   return k;
 }
 
 int main(){
-  int N = 6;
-  int K = 3;
+  N = 6;
+  K = 3;
 
 
 
