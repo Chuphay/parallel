@@ -153,7 +153,7 @@ void get_data(int *N, int *K, char *file){
   fclose(fp);
 }
 
-int open(vertex **graph,  char *name){
+vertex **open(char *name){
   /*graph needs to be preallocated memory
 name is the name of the file you need opened
 returns the number of lines in the file
@@ -167,23 +167,66 @@ but otherwise it messes with data in place
     printf("Couldn't open %s for reading\n",name);
     exit(1);
   }
-
+  vertex **graph;
+  N=0, K=0;
   int c;
   int j = 0; //place in the line
   int k = 0; //num of line
   int l = 0; //element in the line i.e "2 13 434" has only 3 elements
-  int flag = 0;
+  int flag = 0; //checking for double spaces, probably not necessary
+
+  //deal with the first line of text
+  //which has all the important info
+  while((c=fgetc(fp)) != '\n'){
+    s[j]=c;
+    j++;
+    if (isspace(c)){
+      N= atoi(s);
+      printf("N: %d\n", N);
+      
+      l++;
+      for(int i = 0; i<j;i++){
+	//this here to clear s of all data
+	s[i] = 0;
+      }
+      j = 0; 
+    }
+    l=0;
+  }
+  K = atoi(s);
+  printf("K: %d\n", K);
+  //initialize the graph
+  graph = (vertex **) malloc(N*sizeof(vertex *));
+  for(int i = 0; i< N; i++){
+    graph[i] = malloc(sizeof(vertex));
+    graph[i]->edges = malloc(K*sizeof(int));
+  }
+  l = 0;
+  for(int i = 0; i<j;i++){
+    //this here to clear s of all data
+    s[i] = 0;
+  }
+  j = 0; 
+
   while((c=fgetc(fp)) != EOF){
-    printf("%c",(char)c);
+    //printf("%c",(char)c);
     if((char)c != '\n'){
       flag = 0; 
       s[j]=c;
       j++;
     }
     if((char)c == '\n'){
-      //data[k][l] = (int) strtol(s, (char **)NULL, 10);
+
+      graph[k]->edges[l-1] = atoi(s); //minus one, because the first element goes to the identity
+      graph[k]->num_edges = l;
+      graph[k]->cluster = 0;  
+      //printf("l = %d\n", l);
       k++;
       l = 0;
+      for(int i = 0; i<j;i++){
+	//this here to clear s of all data
+	s[i] = 0;
+      }
       j = 0; 
     } else if (isspace(c)){
       if(flag){
@@ -191,78 +234,41 @@ but otherwise it messes with data in place
 	exit(1);      
       }
       flag = 1;
-      //data[k][l] = (int) strtol(s, (char **)NULL, 10);
+      //printf("l = %d\n", l);
+      if(l==0){
+	graph[k]->identity = atoi(s);
+      } else {
+	graph[k]->edges[l-1] = atoi(s);
+      }
       l++;
+      for(int i = 0; i<j;i++){
+	//this here to clear s of all data
+	s[i] = 0;
+      }
       j = 0; 
     }
-
-    if(j>1000){
-      printf("something bad happened: line too long\n");
-      exit(1);
-    }
-    if(l>1000){
-      printf("too many columns... exiting %d \n" ,k);
-      exit(1);
-    }
   }
-  printf("k: %d\n", k-1);
+  printf("num_lines: %d\n", k);
   fclose(fp);
-  return k;
+  if(graph == NULL){
+    printf("ooppss... didn't initialize the graph correctly\n");
+    exit(1);
+  }
+  return graph;
 }
 
 int main(){
-  N = 6;
-  K = 3;
 
+  vertex **graph =open("simple.data");
 
-
-  vertex **graph = malloc(N*sizeof(vertex *));
-  if(graph == NULL){
-    printf("yikes, ran out of memory!\n");
-    exit(1);
+  for(int i =0; i<N; i++){
+    printf("i = %d, identity = %d, num_edges = %d\n", i, graph[i]->identity, graph[i]->num_edges);
+    printf("edges ");
+    for(int j =0; j< graph[i]->num_edges; j++){
+      printf("%d ", (graph[i]->edges)[j]);
+    }
+    printf("\n");
   }
-  for(int i = 0; i< N; i++){
-    graph[i] = malloc(sizeof(vertex));
-    graph[i]->edges = malloc(2*K*sizeof(int)); //2*K for worst case scenario
-  }
- 
-  graph[0]->identity = 0;
-  graph[0]->edges[0] = 1;
-  graph[0]->edges[1] = 2;
-  graph[0]->num_edges = 2;
-  graph[0]->cluster = 0;
-
-  graph[1]->identity = 1;
-  graph[1]->edges[0] = 0;
-  graph[1]->edges[1] = 2;
-  graph[1]->num_edges = 2;
-  graph[1]->cluster = 0;
-
-  graph[2]->identity = 2;
-  graph[2]->edges[0] = 1;
-  graph[2]->edges[1] = 0;
-  graph[2]->edges[2] = 3;
-  graph[2]->num_edges = 3;
-  graph[2]->cluster = 0;
-
-  graph[3]->identity = 3;
-  graph[3]->edges[0] = 2;
-  graph[3]->edges[1] = 4;
-  graph[3]->edges[2] = 5;
-  graph[3]->num_edges = 3;
-  graph[3]->cluster = 0;
-
-  graph[4]->identity = 4;
-  graph[4]->edges[0] = 3;
-  graph[4]->edges[1] = 5;
-  graph[4]->num_edges = 2;
-  graph[4]->cluster = 0;
-
-  graph[5]->identity = 5;
-  graph[5]->edges[0] = 3;
-  graph[5]->edges[1] = 4;
-  graph[5]->num_edges = 2;
-  graph[5]->cluster = 0;
 
 
   cluster *cluster_one = make_cluster(graph, N, K, 1, 3);
@@ -281,7 +287,7 @@ int main(){
     free(graph[i]->edges);
     free(graph[i]);
   }
-  open(graph, "test.data");
+  //open("simple.data");
   free(graph);
   destroy_stack(cluster_one->external_edges);
   free(cluster_one->internal_vertices);

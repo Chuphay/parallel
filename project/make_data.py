@@ -66,9 +66,9 @@ def write_data(edge_graph, k, file_name):
     f = open(file_name, 'w')
     f.write("{0} {1}\n".format(N,k))
     for i, d in enumerate(edge_graph):
-        f.write("{0} ".format(str(i)))
+        f.write("{0}".format(str(i)))
         for j in d:
-            f.write("{0} ".format(str(j)))
+            f.write(" {0}".format(str(j)))
         f.write("\n")
     f.close()
     
