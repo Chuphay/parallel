@@ -1,16 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
+#include "graph.h"
 #include "stack.h"
 
 int N,K;
-
-typedef struct vertex{
-  int identity;
-  int *edges;
-  int num_edges;
-  int cluster;
-} vertex;
 
 typedef struct cluster{
   int identity;
@@ -30,7 +23,7 @@ int find_next_vertex(vertex **graph, cluster *cluster, int K){
   double new_ratio;
 
   int out = -1;
-  int keys[2*K];
+  int keys[2*K]; //because the perimeter can be bigger than K
   int counts[2*K];
   int tot_count = get_stack(keys, counts, 2*K, cluster->external_edges);
   //tot_count is the number of edges in the cluster perimeter
@@ -153,123 +146,13 @@ void get_data(int *N, int *K, char *file){
   fclose(fp);
 }
 
-vertex **open(char *name){
-  /*graph needs to be preallocated memory
-name is the name of the file you need opened
-returns the number of lines in the file
-and hence in the data,
-but otherwise it messes with data in place
- */
 
-  char s[100];
-  FILE *fp =fopen(name,"r");
-  if (fp == NULL) {
-    printf("Couldn't open %s for reading\n",name);
-    exit(1);
-  }
-  vertex **graph;
-  N=0, K=0;
-  int c;
-  int j = 0; //place in the line
-  int k = 0; //num of line
-  int l = 0; //element in the line i.e "2 13 434" has only 3 elements
-  int flag = 0; //checking for double spaces, probably not necessary
-
-  //deal with the first line of text
-  //which has all the important info
-  while((c=fgetc(fp)) != '\n'){
-    s[j]=c;
-    j++;
-    if (isspace(c)){
-      N= atoi(s);
-      printf("N: %d\n", N);
-      
-      l++;
-      for(int i = 0; i<j;i++){
-	//this here to clear s of all data
-	s[i] = 0;
-      }
-      j = 0; 
-    }
-    l=0;
-  }
-  K = atoi(s);
-  printf("K: %d\n", K);
-  //initialize the graph
-  graph = (vertex **) malloc(N*sizeof(vertex *));
-  for(int i = 0; i< N; i++){
-    graph[i] = malloc(sizeof(vertex));
-    graph[i]->edges = malloc(K*sizeof(int));
-  }
-  l = 0;
-  for(int i = 0; i<j;i++){
-    //this here to clear s of all data
-    s[i] = 0;
-  }
-  j = 0; 
-
-  while((c=fgetc(fp)) != EOF){
-    //printf("%c",(char)c);
-    if((char)c != '\n'){
-      flag = 0; 
-      s[j]=c;
-      j++;
-    }
-    if((char)c == '\n'){
-
-      graph[k]->edges[l-1] = atoi(s); //minus one, because the first element goes to the identity
-      graph[k]->num_edges = l;
-      graph[k]->cluster = 0;  
-      //printf("l = %d\n", l);
-      k++;
-      l = 0;
-      for(int i = 0; i<j;i++){
-	//this here to clear s of all data
-	s[i] = 0;
-      }
-      j = 0; 
-    } else if (isspace(c)){
-      if(flag){
-	printf("2 spaces.. exiting  %d \n", k);
-	exit(1);      
-      }
-      flag = 1;
-      //printf("l = %d\n", l);
-      if(l==0){
-	graph[k]->identity = atoi(s);
-      } else {
-	graph[k]->edges[l-1] = atoi(s);
-      }
-      l++;
-      for(int i = 0; i<j;i++){
-	//this here to clear s of all data
-	s[i] = 0;
-      }
-      j = 0; 
-    }
-  }
-  printf("num_lines: %d\n", k);
-  fclose(fp);
-  if(graph == NULL){
-    printf("ooppss... didn't initialize the graph correctly\n");
-    exit(1);
-  }
-  return graph;
-}
 
 int main(){
 
-  vertex **graph =open("simple.data");
-
-  for(int i =0; i<N; i++){
-    printf("i = %d, identity = %d, num_edges = %d\n", i, graph[i]->identity, graph[i]->num_edges);
-    printf("edges ");
-    for(int j =0; j< graph[i]->num_edges; j++){
-      printf("%d ", (graph[i]->edges)[j]);
-    }
-    printf("\n");
-  }
-
+  vertex **graph = make_graph(&N, &K,"simple.data");
+  printf("N = %d, K = %d\n",N,K);
+  //print_graph(N, graph);
 
   cluster *cluster_one = make_cluster(graph, N, K, 1, 3);
 
@@ -283,13 +166,11 @@ int main(){
   printf("area: %d\n", cluster_one->area);
   printf("perimeter: %d\n", cluster_one->perimeter);
 
-  for(int i = 0; i< N; i++){
-    free(graph[i]->edges);
-    free(graph[i]);
-  }
-  //open("simple.data");
-  free(graph);
+  print_clusters(N, graph);
+
+  destroy_graph(N, graph);
   destroy_stack(cluster_one->external_edges);
+
   free(cluster_one->internal_vertices);
   free(cluster_one);
 
