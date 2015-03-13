@@ -164,9 +164,9 @@ int main(){
     if(graph[i]->cluster == 0){
       clusters[num_clusters] = make_cluster(graph, N, K, num_clusters+1, i);
       num_clusters++;
-      if(num_clusters>MAX_CLUSTERS-3){
-	//minus three to be on the safe side 
-	printf("ukk... too makny clusters\n");
+      if(num_clusters>=MAX_CLUSTERS-1){
+	//minus to be on the safe side 
+	printf("ukk... too many clusters\n");
 	exit(1);
       }
     }
@@ -174,7 +174,7 @@ int main(){
 
 
 
-  printf("num %d\n", clusters[0]->num_internal_vertices);
+  printf("num_of_clusters %d\n", num_clusters);
   print_clusters(N, graph);
 
   destroy_graph(N, graph);
