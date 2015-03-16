@@ -6,6 +6,7 @@
 #define MAX_CLUSTERS 10
 
 int N,K;
+FILE *perimeter_file; 
 
 typedef struct cluster{
   int identity;
@@ -16,19 +17,23 @@ typedef struct cluster{
   int perimeter;
 } cluster;
 
-int find_next_vertex(vertex **graph, cluster *cluster, int K){
+int find_next_vertex(vertex **graph, cluster *cluster, int examine){
   //returns the number of the next cluster to add
   //if there is a good one
   //otherwise returns -1
+  //examine is the number of new nodes to look at
+  //when calculating the perimeter
+  //for now, I have disabled this, and we simply look at N nodes
 
   double ratio = (cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;
 
   int out = -1;
-  int keys[10*K]; //because the perimeter can be bigger than K
-  int counts[10*K];
-  int tot_count = get_stack(keys, counts, 10*K, cluster->external_edges);
+  int keys[N]; //because the perimeter can be bigger than K
+  int counts[N];
+  int tot_count = get_stack(keys, counts, N, cluster->external_edges);
 
+  fprintf(perimeter_file, "%d\n", tot_count);
   //tot_count is the number of edges in the cluster perimeter
   //keys store the vertices in the perimeter 
   //counts store the number of edges pointing to that vertex
@@ -155,6 +160,8 @@ void destroy_clusters(cluster **clusters, int num_clusters){
 
 int main(){
 
+  perimeter_file = (FILE *)fopen("perimeter.data","w"); 
+
   vertex **graph = make_graph(&N, &K,"test.data");
   printf("N = %d, K = %d\n",N,K);
 
@@ -179,6 +186,7 @@ int main(){
 
   destroy_graph(N, graph);
   destroy_clusters(clusters, num_clusters);
+  fclose(perimeter_file);
 
 
   return 0;
