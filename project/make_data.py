@@ -4,8 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.kdtree import KDTree 
 
-mpl.rcParams['legend.fontsize'] = 10
-
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.set_zlim(-10, 10)
@@ -40,26 +38,34 @@ def make_adjacency_matrix(data, k):
     kt = KDTree(data) 
     out = zeros((len(data),len(data)))
     for i, points in enumerate(data):
-        distance, neighbors = kt.query(points, k+1)
+        distance, neighbors = kt.query_ball_point(points, k)
         for j in neighbors[1:]:
             out[i][j] = 1;
             out[j][i] = 1; #to ensure symmetry, one can imagine the the nearest neighbors is not necessarily associative
     return out 
 
-def make_edge_graph(data, k):
+def make_edge_graph(data, k, ball = True):
     kt = KDTree(data)
     out = [set() for i in data]
-    k_out = k
+    k_max = 0
+    k_min = np.infty
     for i, points in enumerate(data):
-        distance, neighbors = kt.query(points, k+1)
-        for j in neighbors[1:]:
-            out[i].add(j)
-            if(len(out[i])>k_out):
-                k_out = len(out[i])
-            out[j].add(i)
-            if(len(out[j])>k_out):
-                k_out = len(out[j])
-    return (k_out, out)
+        if(ball):
+            neighbors = kt.query_ball_point(points, k)
+        else:
+            distance, neighbors = kt.query(points,int(k+1))
+            neighbors = neighbors[1:]
+        for j in neighbors:
+            if(j != i):
+                out[i].add(j)
+                if(len(out[i])>k_max):
+                    k_max = len(out[i])
+                out[j].add(i)
+                if(len(out[j])>k_max):
+                    k_max = len(out[j])
+        if(len(out[i])<k_min):
+            k_min = len(out[i])
+    return (k_min, k_max, out)
 
 def write_data(edge_graph, k, file_name):
     N = len(edge_graph)
@@ -75,15 +81,18 @@ def write_data(edge_graph, k, file_name):
   
 if __name__ == "__main__":
     num = 1000
-    k = 12
+    k = 16
     np.random.seed(123)
-    g = make_saturn(num)
-    k,x = make_edge_graph(g, k)
-    print(k)
+    g = make_saturn(num, r = 10)
+    k_min,k_max,x = make_edge_graph(g, k, False)
+    print("min:",k_min,"max:",k_max)
     k_avg = 0
     for d in x:
         k_avg = k_avg + len(d)
     print(k_avg/num)    
-    write_data(x, k, "test.data")
+    if(k_min == 0):
+        print("k_min is zero, not writing data")
+    else:
+        write_data(x, k_max, "test.data")
     #plot_data(g)
 
