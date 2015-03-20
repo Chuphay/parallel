@@ -17,13 +17,11 @@ typedef struct cluster{
   int perimeter;
 } cluster;
 
-int find_next_vertex(vertex **graph, cluster *cluster, int examine){
+int find_next_vertex(vertex **graph, cluster *cluster){
   //returns the number of the next cluster to add
   //if there is a good one
   //otherwise returns -1
-  //examine is the number of new nodes to look at
-  //when calculating the perimeter
-  //for now, I have disabled this, and we simply look at N nodes
+
 
   double ratio = (cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;
@@ -85,8 +83,13 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
     new_node = graph[v]->edges[i]; 
     if(graph[new_node]->cluster == 0){
       //new_node really is a new node
+      int not_using_this;
+      int in_perimeter = search_stack(new_node, &not_using_this, cluster->external_edges);
       push_stack(new_node, &(cluster->external_edges));
-      cluster->perimeter++;
+
+      if(in_perimeter == 0){
+	cluster->perimeter++;
+      }
     } else if(graph[new_node]->cluster == c_identity){
       //this means that this edge already points to the cluster
       //so, we should delete this edge
@@ -108,7 +111,6 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
 
     //take that number away from the perimeter
     cluster->perimeter -= n_count;
-
     //and add that number to the area
     cluster->area += n_count;
 
@@ -140,10 +142,10 @@ cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
   c->perimeter = 0;
 
   add_vertex(seed, graph, c);
-  int next_vertex = find_next_vertex(graph, c, K);
+  int next_vertex = find_next_vertex(graph, c);
   while(next_vertex != -1){
     add_vertex(next_vertex, graph, c);
-    next_vertex = find_next_vertex(graph, c, K);
+    next_vertex = find_next_vertex(graph, c);
   }
   return c;
 }

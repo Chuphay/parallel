@@ -80,11 +80,12 @@ int find_next_vertex(int seed, vertex **graph, cluster *cluster){
  
       int num_new_edges = 0;
       for(int j=0; j<graph[new_node]->num_edges; j++){
-	if(num_edges[graph[new_node]->edges[j]] == 0)
+	if(num_edges[graph[new_node]->edges[j]] != cluster->identity)
 	  num_new_edges++;
       }
+      printf("%d %d %d\n",cluster->perimeter,num_new_edges,2*num_edges[new_node]);
 
-      double new_perimeter = cluster->perimeter + num_new_edges - num_edges[new_node];
+      double new_perimeter = cluster->perimeter + num_new_edges - 2*num_edges[new_node];
       double new_area = cluster->area + num_edges[new_node];
 
 
