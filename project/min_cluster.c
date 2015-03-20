@@ -56,8 +56,10 @@ int find_next_vertex(vertex **graph, cluster *cluster, int examine){
     //but we still need to account for the edges pointing to the cluster
     //however, this is obviously the same as the number of edges pointing to the new vertex
     //and we already have this in counts[i] 
-    double new_perimeter = v->num_edges - num_of_edges_in_perimeter - counts[i];
+    printf("%d %d %d %d\n",cluster->perimeter,v->num_edges,num_of_edges_in_perimeter,2*counts[i]);
+    double new_perimeter = cluster->perimeter + v->num_edges - num_of_edges_in_perimeter - 2*counts[i];
     double new_area = cluster->area + counts[i];
+    printf("node %d perimeter %f area %f\n",v->identity, new_perimeter, new_area);
     new_ratio = new_area/new_perimeter;
 
     //do our stopping condition
@@ -71,7 +73,7 @@ int find_next_vertex(vertex **graph, cluster *cluster, int examine){
 }
 
 void add_vertex(int v, vertex **graph, cluster *cluster){
-
+  printf("adding %d\n", v);
   int c_identity = cluster->identity;
   graph[v]->cluster = c_identity;
   cluster->internal_vertices[cluster->num_internal_vertices] = v;
@@ -93,8 +95,9 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
     } else {
       //I believe this means it points to some other cluster
       //ignore these for now
-      printf("in this sort of weird place...\n");
-      printf("adding node %d, but it apparently belongs somewhere else\n", new_node);
+      printf("node %d is already in a different cluster...\n", new_node);
+      cluster->perimeter++;
+
     }
   }
   //how many edges point to this vertex?
@@ -118,6 +121,7 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
 }
 
 cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
+  printf("making a new cluster, with seed %d and identity %d\n", seed, identity);
 
   cluster *c = malloc(sizeof(cluster));
   if(c == NULL){
@@ -162,7 +166,7 @@ int main(){
 
   perimeter_file = (FILE *)fopen("perimeter.data","w"); 
 
-  vertex **graph = make_graph(&N, &K,"test.data");
+  vertex **graph = make_graph(&N, &K,"simple.data");
   printf("N = %d, K = %d\n",N,K);
 
   cluster **clusters = malloc(MAX_CLUSTERS*sizeof(cluster *));

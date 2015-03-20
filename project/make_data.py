@@ -80,8 +80,8 @@ def write_data(edge_graph, k, file_name):
     
   
 if __name__ == "__main__":
-    num = 8000
-    k = 16
+    num = 1000
+    k = 17
     np.random.seed(123)
     g = make_saturn(num, r = 10)
     k_min,k_max,x = make_edge_graph(g, k, False)
@@ -93,5 +93,5 @@ if __name__ == "__main__":
         print("k_min is zero, not writing data")
     else:
         write_data(x, k_max, "test.data")
-    #plot_data(g)
+    plot_data(g)
 
