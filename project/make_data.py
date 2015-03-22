@@ -9,9 +9,9 @@ ax = fig.add_subplot(111, projection='3d')
 ax.set_zlim(-10, 10)
 
 def make_gauss(n, mean=0, sd=1):
-    x = np.random.randn(n)
-    y = np.random.randn(n)
-    z = np.random.randn(n)
+    x = np.random.normal(mean, sd, n)
+    y = np.random.normal(mean, sd, n)
+    z = np.random.normal(mean, sd, n)
     return np.array([x,y,z]).T
 
 
@@ -28,9 +28,18 @@ def plot_data(data, c = 'k', mark = '.'):
 
 def make_saturn(n, sd = 1, r= 10, noise = 1):
     flag = n%2
-    d_1 = make_ring(n//2, r, noise)
-    d_2 = make_gauss(n//2+flag, sd = sd)
+    d_1 = make_gauss(n//2+flag, sd = sd)
+    d_2 = make_ring(n//2, r, noise)
+
     return np.vstack((d_1,d_2))
+
+def make_two(n):
+    flag = n%2
+    d_1 = make_gauss(n//2, mean=0)
+    d_2 = make_gauss(n//2+flag, mean =7)
+    return np.vstack((d_1,d_2))
+
+
 
 
  
@@ -81,9 +90,10 @@ def write_data(edge_graph, k, file_name):
   
 if __name__ == "__main__":
     num = 1000
-    k = 17
+    k = 45
     np.random.seed(123)
     g = make_saturn(num, r = 10)
+    #g = make_two(num)
     k_min,k_max,x = make_edge_graph(g, k, False)
     k_avg = 0
     for d in x:
@@ -93,5 +103,5 @@ if __name__ == "__main__":
         print("k_min is zero, not writing data")
     else:
         write_data(x, k_max, "test.data")
-    plot_data(g)
+        plot_data(g)
 

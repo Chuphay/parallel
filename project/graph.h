@@ -10,6 +10,8 @@ typedef struct vertex{
   int *edges;
   int num_edges;
   int cluster;
+  int edges_pointing_to_me;
+  int my_cluster;
 } vertex;
 
 vertex **make_graph(int *N, int *K,char *name);

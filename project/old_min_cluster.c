@@ -6,7 +6,6 @@
 #define MAX_CLUSTERS 10
 
 int N,K;
-FILE *perimeter_file; 
 
 typedef struct cluster{
   int identity;
@@ -17,22 +16,19 @@ typedef struct cluster{
   int perimeter;
 } cluster;
 
-int find_next_vertex(vertex **graph, cluster *cluster){
+int find_next_vertex(vertex **graph, cluster *cluster, int K){
   //returns the number of the next cluster to add
   //if there is a good one
   //otherwise returns -1
 
-  double alpha = 0.8;
-
-  double ratio = alpha*(cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
+  double ratio = (cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;
 
   int out = -1;
-  int keys[N]; //because the perimeter can be bigger than K
-  int counts[N];
-  int tot_count = get_stack(keys, counts, N, cluster->external_edges);
+  int keys[10*K]; //because the perimeter can be bigger than K
+  int counts[10*K];
+  int tot_count = get_stack(keys, counts, 10*K, cluster->external_edges);
 
-  fprintf(perimeter_file, "%d\n", tot_count);
   //tot_count is the number of edges in the cluster perimeter
   //keys store the vertices in the perimeter 
   //counts store the number of edges pointing to that vertex
@@ -55,10 +51,8 @@ int find_next_vertex(vertex **graph, cluster *cluster){
     //but we still need to account for the edges pointing to the cluster
     //however, this is obviously the same as the number of edges pointing to the new vertex
     //and we already have this in counts[i] 
-    //printf("%d %d %d %d\n",cluster->perimeter,v->num_edges,num_of_edges_in_perimeter,counts[i]);
-    double new_perimeter = cluster->perimeter + v->num_edges - 2*counts[i]+0.00001;
+    double new_perimeter = v->num_edges - num_of_edges_in_perimeter - counts[i];
     double new_area = cluster->area + counts[i];
-    //printf("node %d perimeter %f area %f\n",v->identity, new_perimeter, new_area);
     new_ratio = new_area/new_perimeter;
 
     //do our stopping condition
@@ -72,7 +66,7 @@ int find_next_vertex(vertex **graph, cluster *cluster){
 }
 
 void add_vertex(int v, vertex **graph, cluster *cluster){
-  //printf("adding %d\n", v);
+  printf("adding %d\n", v);
   int c_identity = cluster->identity;
   graph[v]->cluster = c_identity;
   cluster->internal_vertices[cluster->num_internal_vertices] = v;
@@ -84,14 +78,8 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
     new_node = graph[v]->edges[i]; 
     if(graph[new_node]->cluster == 0){
       //new_node really is a new node
-      //int not_using_this;
-      //int in_perimeter = search_stack(new_node, &not_using_this, cluster->external_edges);
-      //printf("just checking\n");
       push_stack(new_node, &(cluster->external_edges));
-
-      //if(in_perimeter == 0){
-	cluster->perimeter++;
-	//}
+      cluster->perimeter++;
     } else if(graph[new_node]->cluster == c_identity){
       //this means that this edge already points to the cluster
       //so, we should delete this edge
@@ -100,9 +88,8 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
     } else {
       //I believe this means it points to some other cluster
       //ignore these for now
-      // printf("node %d is already in a different cluster...\n", new_node);
-      cluster->perimeter++;
-
+      printf("in this sort of weird place...\n");
+      printf("adding node %d, but it apparently belongs somewhere else\n", new_node);
     }
   }
   //how many edges point to this vertex?
@@ -113,6 +100,7 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
 
     //take that number away from the perimeter
     cluster->perimeter -= n_count;
+
     //and add that number to the area
     cluster->area += n_count;
 
@@ -125,7 +113,6 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
 }
 
 cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
-  printf("making a new cluster, with seed %d and identity %d\n", seed, identity);
 
   cluster *c = malloc(sizeof(cluster));
   if(c == NULL){
@@ -144,10 +131,10 @@ cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
   c->perimeter = 0;
 
   add_vertex(seed, graph, c);
-  int next_vertex = find_next_vertex(graph, c);
+  int next_vertex = find_next_vertex(graph, c, K);
   while(next_vertex != -1){
     add_vertex(next_vertex, graph, c);
-    next_vertex = find_next_vertex(graph, c);
+    next_vertex = find_next_vertex(graph, c, K);
   }
   return c;
 }
@@ -168,8 +155,6 @@ void destroy_clusters(cluster **clusters, int num_clusters){
 
 int main(){
 
-  perimeter_file = (FILE *)fopen("perimeter.data","w"); 
-
   vertex **graph = make_graph(&N, &K,"test.data");
   printf("N = %d, K = %d\n",N,K);
 
@@ -179,25 +164,22 @@ int main(){
     if(graph[i]->cluster == 0){
       clusters[num_clusters] = make_cluster(graph, N, K, num_clusters+1, i);
       num_clusters++;
-      if(num_clusters>=MAX_CLUSTERS-1){
-	//minus to be on the safe side 
-	printf("ukk... too many clusters\n");
+      if(num_clusters>MAX_CLUSTERS-3){
+	//minus three to be on the safe side 
+	printf("ukk... too makny clusters\n");
 	exit(1);
       }
     }
   }
 
 
-
-
   printf("number of clusters %d\n", num_clusters);
   for(int i = 0; i<num_clusters; i++)
-    printf("cluster %d has %d elements\n", i+1, clusters[i]->num_internal_vertices);
+    printf("cluster %d has %d elemnts\n", i+1, clusters[i]->num_internal_vertices);
   print_clusters(N, graph);
 
   destroy_graph(N, graph);
   destroy_clusters(clusters, num_clusters);
-  fclose(perimeter_file);
 
 
   return 0;

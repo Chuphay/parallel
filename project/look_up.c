@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "graph.h"
+#include "cluster.h"
 
 
 #define MAX_CLUSTERS 10
@@ -10,19 +11,13 @@ int *cluster_id;
 int *num_edges;
 
 
-typedef struct cluster{
-  int identity;
-  // int *internal_vertices;
-  int num_internal_vertices;
-  int area;
-  int perimeter;
-} cluster;
+
 
 void add_vertex(int v, vertex **graph, cluster *cluster);
 int find_next_vertex(int seed, vertex **graph, cluster *cluster);
 
 
-cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
+cluster *maked_cluster(vertex **graph, int N, int K, int identity, int seed){
   printf("making a new cluster, with seed %d and identity %d\n", seed, identity);
   cluster *c = malloc(sizeof(cluster));
   if(c == NULL){
@@ -30,11 +25,7 @@ cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
     exit(1);
   }
   c->identity = identity;
-  //c->internal_vertices = malloc(N*sizeof(int));
-  //if(c->internal_vertices == NULL){
-  //  printf("couldn't allocate for the internal_vertices\n");
-  //  exit(1);
-  // }
+
   c->num_internal_vertices = 0;
   c->area = 0;
   c->perimeter = 0;
@@ -83,9 +74,9 @@ int find_next_vertex(int seed, vertex **graph, cluster *cluster){
 	if(num_edges[graph[new_node]->edges[j]] != cluster->identity)
 	  num_new_edges++;
       }
-      printf("%d %d %d\n",cluster->perimeter,num_new_edges,2*num_edges[new_node]);
+      printf("%d %d %d\n",cluster->perimeter,graph[new_node]->num_edges,2*num_edges[new_node]);
 
-      double new_perimeter = cluster->perimeter + num_new_edges - 2*num_edges[new_node];
+      double new_perimeter = cluster->perimeter + graph[new_node]->num_edges - 2*num_edges[new_node];
       double new_area = cluster->area + num_edges[new_node];
 
 
@@ -130,6 +121,7 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
       //this means it points to some other cluster
       //ignore these for now
       num_edges_pointing_to_cluster++;
+      cluster->perimeter++;
       printf("%d is already in a cluster...\n", graph[new_node]->identity);
 
     }
@@ -180,7 +172,7 @@ int main(){
   int num_clusters = 0;
   for(int i = 0; i<N; i++){
     if(graph[i]->cluster == 0){
-      clusters[num_clusters] = make_cluster(graph, N, K, num_clusters+1, i);
+      clusters[num_clusters] = maked_cluster(graph, N, K, num_clusters+1, i);
       num_clusters++;
       if(num_clusters>=MAX_CLUSTERS-1){
 	//minus to be on the safe side 
