@@ -9,8 +9,8 @@ typedef struct cluster{
   int perimeter;
 } cluster;
 
-cluster *make_cluster(int N, int K, int identity);
+cluster *make_cluster(int identity);
 
-void destroy_cluster(cluster *clusters);
+void destroy_cluster(cluster *c);
 
 #endif

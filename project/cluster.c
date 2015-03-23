@@ -3,7 +3,7 @@
 #include "cluster.h"
 
 
-cluster *make_cluster(int N, int K, int identity){
+cluster *make_cluster(int identity){
   cluster *c = malloc(sizeof(cluster));
   if(c == NULL){
     printf("couldn't allocate for the cluster\n");

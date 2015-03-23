@@ -22,7 +22,7 @@ int find_next_vertex(vertex **graph, cluster *cluster){
   //if there is a good one
   //otherwise returns -1
 
-  double alpha = 0.8;
+  double alpha = 1.0;
 
   double ratio = alpha*(cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;
