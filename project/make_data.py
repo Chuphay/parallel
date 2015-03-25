@@ -89,8 +89,8 @@ def write_data(edge_graph, k, file_name):
     
   
 if __name__ == "__main__":
-    num = 32000
-    k = 55
+    num = 4000
+    k = 320
     np.random.seed(123)
     g = make_saturn(num, r = 10)
     #g = make_two(num)
