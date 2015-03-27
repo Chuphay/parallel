@@ -16,7 +16,7 @@ int find_next_vertex(int seed, vertex **graph, cluster *cluster){
   //if there is a good one
   //otherwise returns -1
   //We will only look at edges that the seed node contains
-  double alpha = 0.8;
+  double alpha = 0.95;
 
   double old_ratio = alpha*(cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;

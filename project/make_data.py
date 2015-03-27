@@ -2,11 +2,33 @@ import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from scipy.spatial.kdtree import KDTree 
+from subprocess import Popen, PIPE
+
+def write(s):
+    s = s.split()
+    out = Popen(s,stdout = PIPE).communicate()[0]
+    return out.decode("utf-8")
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.set_zlim(-10, 10)
+
+def plot_clusters(data):
+
+    clusters = list(map(int, open("clusters.data").read().split()))
+    num_clusters = max(clusters)
+    colors = cm.rainbow(np.linspace(0, 1, num_clusters))
+
+    for i in range(num_clusters):
+        for j in range(len(clusters)):
+            if(clusters[j] == i + 1): #plus 1 because my clusters start at 1
+                ax.scatter(data[j][0],data[j][1],data[j][2], c = colors[i])
+
+    plt.show();
+
 
 def make_gauss(n, mean=0, sd=1):
     x = np.random.normal(mean, sd, n)
@@ -26,7 +48,7 @@ def plot_data(data, c = 'k', mark = '.'):
     ax.scatter(data[:,0],data[:,1],data[:,2], color = c, marker = mark)
     plt.show()
 
-def make_saturn(n, sd = 1, r= 10, noise = 1):
+def make_saturn(n, sd = 1.1, r= 7, noise = 1):
     flag = n%2
     d_1 = make_gauss(n//2+flag, sd = sd)
     d_2 = make_ring(n//2, r, noise)
@@ -71,9 +93,11 @@ def make_edge_graph(data, k, ball = True):
                     k_max = len(out[i])
                 out[j].add(i)
                 if(len(out[j])>k_max):
+                    
                     k_max = len(out[j])
         if(len(out[i])<k_min):
             k_min = len(out[i])
+
     return (k_min, k_max, out)
 
 def write_data(edge_graph, k, file_name):
@@ -86,22 +110,32 @@ def write_data(edge_graph, k, file_name):
             f.write(" {0}".format(str(j)))
         f.write("\n")
     f.close()
+
+def plot_perimeter():
+    perimeter = list(map(int, open("perimeter.data").read().split()))
+    plt.plot([i for i in range(len(perimeter))],perimeter)
+    plt.show()
     
   
 if __name__ == "__main__":
-    num = 4000
-    k = 320
+    num = 1000
+    k = 30
     np.random.seed(123)
-    g = make_saturn(num, r = 10)
+    g = make_saturn(num)
     #g = make_two(num)
-    k_min,k_max,x = make_edge_graph(g, k, False)
-    k_avg = 0
+    k_min,k_max, x = make_edge_graph(g, k, False)
+    k_tot = 0
     for d in x:
-        k_avg = k_avg + len(d)
-    print("min:",k_min,"max:",k_max, "avg:",(k_avg/num))    
+        k_tot = k_tot + len(d)
+
+    print("min:",k_min,"max:",k_max, "avg:",(k_tot/num))    
     if(k_min == 0):
         print("k_min is zero, not writing data")
     else:
         write_data(x, k_max, "test.data")
         #plot_data(g)
 
+    x = write("./look_up")
+    print(x)
+    plot_clusters(g)
+    plot_perimeter()
