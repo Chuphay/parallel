@@ -8,6 +8,7 @@
 int N, K;
 int *cluster_id;
 int *num_edges;
+double alpha;
 FILE *perimeter_file; 
 
 
@@ -16,7 +17,7 @@ int find_next_vertex(int seed, vertex **graph, cluster *cluster){
   //if there is a good one
   //otherwise returns -1
   //We will only look at edges that the seed node contains
-  double alpha = 0.95;
+
 
   double old_ratio = alpha*(cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;
@@ -118,7 +119,15 @@ void recursively_make_cluster(int seed, vertex **graph, cluster *c){
 
 
 
-int main(){
+int main(int argc, char **argv){
+
+  if(argc>1){
+    alpha = atof(argv[1]);
+    printf("setting alpha to %f\n", alpha);
+  } else {
+    alpha = 1.0;
+    printf("setting alpha to 1\n");
+  }
 
   perimeter_file = (FILE *)fopen("perimeter.data","w"); 
  
@@ -141,7 +150,7 @@ int main(){
       for(int j = 0; j<N; j++)
 	num_edges[j] = 0;
 
-      printf("making a new cluster, with seed %d and identity %d\n", i, num_clusters+1);
+      //printf("making a new cluster, with seed %d and identity %d\n", i, num_clusters+1);
       clusters[num_clusters] = make_cluster(num_clusters+1);
       recursively_make_cluster(i, graph, clusters[num_clusters]);
       num_clusters++;
