@@ -3,9 +3,10 @@
 #include "graph.h"
 #include "stack.h"
 
-#define MAX_CLUSTERS 10
+#define MAX_CLUSTERS 100
 
 int N,K;
+double alpha;
 FILE *perimeter_file; 
 
 typedef struct cluster{
@@ -22,7 +23,7 @@ int find_next_vertex(vertex **graph, cluster *cluster){
   //if there is a good one
   //otherwise returns -1
 
-  double alpha = 1.0;
+  //double alpha = 1.0;
 
   double ratio = alpha*(cluster->area)/((double)cluster->perimeter + 0.00001); //avoid divide by zero
   double new_ratio;
@@ -125,7 +126,7 @@ void add_vertex(int v, vertex **graph, cluster *cluster){
 }
 
 cluster *make_cluster(vertex **graph, int N, int K, int identity, int seed){
-  printf("making a new cluster, with seed %d and identity %d\n", seed, identity);
+  // printf("making a new cluster, with seed %d and identity %d\n", seed, identity);
 
   cluster *c = malloc(sizeof(cluster));
   if(c == NULL){
@@ -166,7 +167,15 @@ void destroy_clusters(cluster **clusters, int num_clusters){
 
 
 
-int main(){
+int main(int argc, char **argv){
+
+  if(argc>1){
+    alpha = atof(argv[1]);
+    printf("setting alpha to %f\n", alpha);
+  } else {
+    alpha = 1.0;
+    printf("setting alpha to 1\n");
+  }
 
   perimeter_file = (FILE *)fopen("perimeter.data","w"); 
 
