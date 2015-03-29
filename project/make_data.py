@@ -12,10 +12,6 @@ def write(s):
     return out.decode("utf-8")
 
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.set_zlim(-10, 10)
-
 def plot_clusters(data):
 
     clusters = list(map(int, open("clusters.data").read().split()))
@@ -115,9 +111,22 @@ def plot_perimeter():
     perimeter = list(map(int, open("perimeter.data").read().split()))
     plt.plot([i for i in range(len(perimeter))],perimeter)
     plt.show()
+
+def get_num_clusters(alpha):
+    my_string = "./look_up {0}".format(alpha)
+    x = write(my_string)
+    #print(x)
+    z = x.split("\n")[2]
+    if(z[:15] == 'num_of_clusters'):
+        return int(z[15:])
+    else:
+        return np.infty
     
   
 if __name__ == "__main__":
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_zlim(-10, 10)
     num = 1000
     k = 30
     np.random.seed(123)
