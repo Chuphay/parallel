@@ -132,7 +132,7 @@ int main(int argc, char **argv){
   perimeter_file = (FILE *)fopen("perimeter.data","w"); 
  
 
-  vertex **graph = make_graph(&N, &K,"test.data");
+  vertex **graph = make_graph(&N, &K,"football.data");
   printf("N = %d, K = %d\n",N,K);
   cluster_id = malloc(N*sizeof(int));
   num_edges = malloc(N*sizeof(int));
