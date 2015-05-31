@@ -6,6 +6,12 @@ import matplotlib.cm as cm
 from scipy.spatial.kdtree import KDTree 
 from subprocess import Popen, PIPE
 
+
+#not sure about the following line
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1, projection='3d')
+
+
 def write(s):
     s = s.split()
     out = Popen(s,stdout = PIPE).communicate()[0]
